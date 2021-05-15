@@ -14,7 +14,7 @@ training_data_length = training_data.index.size
 testing_data_length = testing_data.index.size
 
 
-def PCC(r_uk, r_wk, r_u_mean, r_w_mean) -> float: 
+def similarity_u(r_uk, r_wk, r_u_mean, r_w_mean) -> float: 
     numerator = 0
     denominator_p1 = 0
     denominator_p2 = 0
@@ -29,7 +29,22 @@ def PCC(r_uk, r_wk, r_u_mean, r_w_mean) -> float:
     denominator = math.sqrt(denominator_p1) * math.sqrt(denominator_p2)
     return numerator / denominator
 
-def top_k(usr_id, r_usr, r_usr_mean, item_id, K):
+def similarity_i(r_usr, k, j, r_usr_mean) -> float: 
+    numerator = 0
+    denominator_p1 = 0
+    denominator_p2 = 0
+    for u in r_usr:
+        if not k in r_usr[u] or not j in r_usr[u]:
+            continue
+        numerator += (r_usr[u][k] - r_usr_mean[u]) * (r_usr[u][j] - r_usr_mean[u])
+        denominator_p1 += (r_usr[u][k] - r_usr_mean[u]) ** 2
+        denominator_p2 += (r_usr[u][j] - r_usr_mean[u]) ** 2
+    if denominator_p1 == 0 or denominator_p2 == 0:
+        return 0
+    denominator = math.sqrt(denominator_p1) * math.sqrt(denominator_p2)
+    return numerator / denominator
+
+def top_k_u(usr_id, r_usr, r_usr_mean, item_id, K):
     if not usr_id in r_usr:
         return {}
     r_uk = r_usr[usr_id]
@@ -40,13 +55,28 @@ def top_k(usr_id, r_usr, r_usr_mean, item_id, K):
             continue
         r_wk = r_usr[r_w]
         r_w_mean = r_usr_mean[r_w]
-        _pcc = PCC(r_uk, r_wk, r_u_mean, r_w_mean)
-        if _pcc != 0:
+        _pcc = similarity_u(r_uk, r_wk, r_u_mean, r_w_mean)
+        if _pcc > 0:
             pcc[r_w] = _pcc
 
     top_k_pcc = dict(sorted(pcc.items(), key=lambda item: item[1], reverse=True)[:K])
     return top_k_pcc
     
+
+def top_k_i(usr_id, r_usr, r_item, r_usr_mean, item_id, K):
+    if not item_id in r_item:
+        return {}
+    similarity = {}
+    for k in r_item:
+        if k == item_id or not k in r_usr[usr_id]:
+            continue
+        _similarity = similarity_i(r_usr, k, item_id, r_usr_mean)
+        if _similarity > 0:
+            similarity[k] = _similarity
+
+    top_k = dict(sorted(similarity.items(), key=lambda item: item[1], reverse=True)[:K])
+    return top_k
+
 def main() -> None:
     r_usr = {}
     r_item = {}
@@ -84,7 +114,7 @@ def main() -> None:
         item_id = row[1]
         rating = row[2]
 
-        UCF_top_k_pcc = top_k(usr_id, r_usr, r_usr_mean, item_id, K)
+        UCF_top_k_pcc = top_k_u(usr_id, r_usr, r_usr_mean, item_id, K)
         UCF = r_usr_mean[usr_id]
         UCF_bias_numerator = 0
         UCF_bias_denominator = sum(UCF_top_k_pcc.values())            
@@ -99,12 +129,12 @@ def main() -> None:
         UCF_prediction_bias_sum += abs(UCF - rating)
         UCF_prediction_square_bias_sum += (UCF - rating) ** 2
 
-        ICF_top_k_pcc = top_k(item_id, r_item, r_item_mean, usr_id, K)
+        ICF_top_k_similarity = top_k_i(usr_id, r_usr, r_item, r_usr_mean, item_id, K)
         ICF = r_usr_mean[usr_id]
         ICF_numerator = 0
-        ICF_bias_denominator = sum(ICF_top_k_pcc.values())            
-        for k in ICF_top_k_pcc:
-            ICF_numerator += ICF_top_k_pcc[k]*(r_usr[usr_id][k])
+        ICF_bias_denominator = sum(ICF_top_k_similarity.values())          
+        for k in ICF_top_k_similarity:
+            ICF_numerator += ICF_top_k_similarity[k]*(r_usr[usr_id][k])
         
         if ICF_bias_denominator != 0:
             ICF = ICF_numerator / ICF_bias_denominator
@@ -122,8 +152,8 @@ def main() -> None:
     UCF_MAE = UCF_prediction_bias_sum / testing_data_length
     UCF_RMSE = math.sqrt(UCF_prediction_square_bias_sum / testing_data_length)
 
-    ICF_MAE = UCF_prediction_bias_sum / testing_data_length
-    ICF_RMSE = math.sqrt(UCF_prediction_square_bias_sum / testing_data_length)
+    ICF_MAE = ICF_prediction_bias_sum / testing_data_length
+    ICF_RMSE = math.sqrt(ICF_prediction_square_bias_sum / testing_data_length)
 
     HCF_MAE = HCF_prediction_bias_sum / testing_data_length
     HCF_RMSE = math.sqrt(HCF_prediction_square_bias_sum / testing_data_length)
