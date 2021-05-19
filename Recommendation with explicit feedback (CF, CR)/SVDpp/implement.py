@@ -1,65 +1,20 @@
 
-import math
 import pandas as pd
-import numpy as np
-from numpy import mat
-from scipy.sparse import csc_matrix
-from scipy.sparse.linalg import svds, eigs
 
 n = 943
 m = 1682
-training_data = pd.read_csv('../../dataset/ml-100k/u1.base', delim_whitespace=True, index_col=False, header=None)
-testing_data = pd.read_csv('../../dataset/ml-100k/u1.test', delim_whitespace=True, index_col=False, header=None)
+training_data = pd.read_csv('../../dataset/ml-100k/ua.base', delim_whitespace=True, index_col=False, header=None)
+training_data_implicit = training_data.sample(frac = 0.5)
+training_data_implicit_length = training_data_implicit.index.size
+
+training_data = training_data.drop(training_data_implicit.index)
 training_data_length = training_data.index.size
+
+testing_data = pd.read_csv('../../dataset/ml-100k/ua.test', delim_whitespace=True, index_col=False, header=None)
 testing_data_length = testing_data.index.size
 
 
-def to_filled_matrix(data, n, m, x_mean):
-    data_mat = mat(np.zeros([n, m]), dtype=np.float32)
-    for index, row in data.iterrows():
-        usr_id = row[0]
-        item_id = row[1]
-        rating = row[2]
-        data_mat[usr_id - 1, item_id - 1] = rating
-
-    to_be_filled = np.argwhere(data_mat == 0)
-    for pos in to_be_filled:
-        x = pos[0]
-        y = pos[1]
-        data_mat[x, y] = x_mean[x + 1]
-
-    return data_mat
-
-def Pure_SVD(r_usr_mean, d):
-    R = to_filled_matrix(training_data, n, m, r_usr_mean)
-    filled_usr_mean = R.mean(1)
-    R1 = np.subtract(R, filled_usr_mean @ mat(np.ones([1, m])))
-
-    u, s, vt = svds(R1, k=d)
-    s = np.diag(s)
-    # u, s, vt = np.linalg.svd(R1)
-    # u = u[:, :d]
-    # s = np.diag(s[:d])
-    # vt = vt[:d,:]
-
-    # r_prediction = np.matmul(np.matmul(u,s), vt)
-    r_prediction = u @ s @ vt
-
-    bias_sum = 0
-    square_bias_sum = 0
-    for index, row in testing_data.iterrows():
-        usr_id = row[0]
-        item_id = row[1]
-        rating = row[2]
-        r_ui_prediction = filled_usr_mean[usr_id - 1] + r_prediction[usr_id - 1, item_id - 1]
-        bias_sum += abs(r_ui_prediction - rating)
-        square_bias_sum += (r_ui_prediction - rating) ** 2
-
-    MAE = bias_sum / testing_data_length
-    RMSE = math.sqrt(square_bias_sum / testing_data_length)
-    return MAE, RMSE
-
-def RSVD_initialization(d):
+def SVDpp_initialization(d):
     r_sum = training_data.sum(axis=0)[2]
     r_mean = r_sum / training_data_length
 
@@ -115,7 +70,6 @@ def RSVD_initialization(d):
 
         b /= b_len
         b_usr[usr_id] = b
-    
 
     for item_id in range(1, m + 1):
         b = 0
@@ -130,17 +84,25 @@ def RSVD_initialization(d):
         b /= b_len
         b_item[item_id] = b
 
+    I_u = {}
+    for index, row in training_data_implicit.iterrows():
+        usr_id = row[0]
+        item_id = row[1]
+        I_u.setdefault(usr_id)
+        if I_u[usr_id] == None:
+            I_u[usr_id] = []
+        I_u[usr_id].append(item_id)
+
     U = (np.random.random((n,d)) - 0.5) * 0.01
     V = (np.random.random((m,d)) - 0.5) * 0.01
+    W = (np.random.random((m,d)) - 0.5) * 0.01
+    return r_mean, b_usr, b_item, U, V, W, I_u
 
-    return r_mean, b_usr, b_item, U, V
+def SVDpp_prediction(mu, b_u, b_i, U_u, V_i_T, U_virtual_u):
+    return mu + b_u + b_i + U_u @ V_i_T + U_virtual_u @ V_i_T
 
-def RSVD_prediction(mu, b_u, b_i, U_u, V_i_T):
-    return mu + b_u + b_i + U_u @ V_i_T
-
-def RSVD(alpha_u, alpha_v, beta_u, beta_v, gamma, d, T):
-    # initialization
-    mu, b_u, b_i, U, V = RSVD_initialization(d)
+def SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T):
+    mu, b_u, b_i, U, V, W, I_u = SVDpp_initialization(d)
 
     # training
     for t in range(0, T):
@@ -149,19 +111,29 @@ def RSVD(alpha_u, alpha_v, beta_u, beta_v, gamma, d, T):
             usr_id = row[0]
             item_id = row[1]
             rating = row[2]
-            prediction = RSVD_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1))
+            U_virtual_u = np.zeros([1, d])
+            for v_i in I_u[usr_id]:
+                U_virtual_u += W.reshape(m, d)[v_i - 1]
+            U_virtual_u /= math.sqrt(abs(sum(I_u[usr_id])))
+            prediction = SVDpp_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1), U_virtual_u)
             e_ui = rating - prediction
             delta_mu = -e_ui
             delta_b_u = -e_ui + beta_u * b_u[usr_id]
             delta_b_i = -e_ui + beta_v * b_i[item_id]
             delta_U_u = -e_ui * V[item_id - 1] + alpha_u * U[usr_id - 1]
-            delta_V_i = -e_ui * U[usr_id - 1] + alpha_v * V[item_id - 1]
+            delta_V_i = -e_ui * (U[usr_id - 1] + U_virtual_u) + alpha_v * V[item_id - 1]
+            delta_W_i_v = np.zeros([m])
+            for v_i in I_u[usr_id]:
+                delta_W_i_v[v_i - 1] = -e_ui / math.sqrt(abs(sum(I_u[usr_id]))) * V[item_id - 1] + alpha_w * W.reshape(m, d)[v_i - 1]
+            
             
             mu -= gamma * delta_mu
             b_u[usr_id] -= gamma *  delta_b_u
             b_i[item_id] -= gamma * delta_b_i
             U[usr_id - 1] -= gamma * delta_U_u.reshape(d)
             V[item_id - 1] -= gamma * delta_V_i.reshape(d)
+            for v_i in I_u[usr_id]:
+                W[v_i - 1] -= gamma * delta_W_i_v[v_i - 1]
         gamma *= 0.9
         
     # testing
@@ -180,36 +152,9 @@ def RSVD(alpha_u, alpha_v, beta_u, beta_v, gamma, d, T):
 
     return MAE, RMSE
 
-
+    return 
 
 def main():
-    r_usr = {}
-    for index, row in training_data.iterrows():
-        usr_id = row[0]
-        item_id = row[1]
-        rating = row[2]
-        r_usr.setdefault(usr_id)
-        if r_usr[usr_id] == None:
-            r_usr[usr_id] = {}
-        r_usr[usr_id][item_id] = rating
-
-    r_usr_mean = {}
-    for usr_id in r_usr:
-        r_usr_mean[usr_id] = sum(r_usr[usr_id].values()) / len(r_usr[usr_id])
-
-    alpha_u = alpha_v = beta_u = beta_v = 0.01
-    gamma = 0.01
-    T = 100
-    d = 20
-    print("Pure_SVD")
-    MAE, RMSE = Pure_SVD(r_usr_mean, d)
-    print(MAE)
-    print(RMSE)
-
-    # print("RSVD")
-    # MAE, RMSE = RSVD(alpha_u, alpha_v, beta_u, beta_v, gamma, d, T)
-    # print(MAE)
-    # print(RMSE)
 
     return
 
