@@ -140,6 +140,10 @@ def SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T):
             for v_i in I_u[usr_id]:
                 W[v_i - 1] -= gamma * delta_W_i_v[v_i - 1]
         gamma *= 0.9
+
+
+    # save params
+    # ...
         
     # testing
     bias_sum = 0
@@ -148,7 +152,11 @@ def SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T):
         usr_id = row[0]
         item_id = row[1]
         rating = row[2]
-        r_ui_prediction = RSVD_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1))
+        U_virtual_u = np.zeros([1, d])
+        for v_i in I_u[usr_id]:
+            U_virtual_u += W.reshape(m, d)[v_i - 1]
+        U_virtual_u /= math.sqrt(abs(sum(I_u[usr_id])))
+        r_ui_prediction = SVDpp_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1), U_virtual_u)
         
         bias_sum += abs(r_ui_prediction - rating)
         square_bias_sum += (r_ui_prediction - rating) ** 2
