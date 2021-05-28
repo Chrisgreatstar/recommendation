@@ -102,14 +102,14 @@ def MF_MPC_prediction(mu, b_u, b_i, U_u, V_i_T, U_MPC_u, min_value, max_value):
     if prediction < min_value: prediction = min_value
     return prediction
 
-def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data, test_data, min_value, max_value):
+def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data, testing_data, min_value, max_value):
     training_data_length = training_data.index.size
-    testing_data_length = test_data.index.size
+    testing_data_length = testing_data.index.size
     mu, b_u, b_i, U, V, M, I_r_u = MF_MPC_initialization(d, training_data)
 
     # training
     for t in range(0, T):
-        print(t)
+        # print(t)
         for index, row in training_data.iterrows():
             usr_id = row[0]
             item_id = row[1]
@@ -178,12 +178,15 @@ def main():
     for i in range(5):
         print(i)
         training_data = pd.concat(datas[0:i] + datas[i+1:5])
-        test_data = data[i]
-        MAE, RMSE = MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data, test_data, 1, 5)
+        testing_data = datas[i]
+        MAE, RMSE = MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data, testing_data, 1, 5)
+        print(MAE)
+        print(RMSE)
         MFMPC_MAE += MAE
         MFMPC_RMSE += RMSE
 
-
+    MFMPC_MAE /= 5.0
+    MFMPC_RMSE /= 5.0
     print(MFMPC_MAE)
     print(MFMPC_RMSE)
     return

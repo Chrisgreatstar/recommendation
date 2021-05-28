@@ -109,6 +109,7 @@ def SVDpp_prediction(mu, b_u, b_i, U_u, V_i_T, U_virtual_u):
 def SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T):
     mu, b_u, b_i, U, V, W, I_u = SVDpp_initialization(d)
 
+    print('training...')
     # training
     for t in range(0, T):
         print(t)
@@ -144,7 +145,8 @@ def SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T):
 
     # save params
     # ...
-        
+    
+    print('testing...')
     # testing
     bias_sum = 0
     square_bias_sum = 0
@@ -174,10 +176,41 @@ def main():
     T = 100
     d = 20
 
-    print("SVD++")
+    # print("SVD++")
+    # MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    # print(MAE)
+    # print(RMSE)
+
+    T = 0
+    print(T)
     MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
     print(MAE)
     print(RMSE)
+
+    T = 1
+    print(T)
+    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    print(MAE)
+    print(RMSE)
+
+    T = 5
+    print(T)
+    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    print(MAE)
+    print(RMSE)
+
+    T = 10
+    print(T)
+    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    print(MAE)
+    print(RMSE)
+
+    T = 15
+    print(T)
+    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    print(MAE)
+    print(RMSE)
+
     return
 
 if __name__ == '__main__':
