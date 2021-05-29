@@ -176,40 +176,40 @@ def main():
     T = 100
     d = 20
 
-    # print("SVD++")
+    print("SVD++")
+    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    print(MAE)
+    print(RMSE)
+
+    # T = 0
+    # print(T)
     # MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
     # print(MAE)
     # print(RMSE)
 
-    T = 0
-    print(T)
-    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
-    print(MAE)
-    print(RMSE)
+    # T = 1
+    # print(T)
+    # MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    # print(MAE)
+    # print(RMSE)
 
-    T = 1
-    print(T)
-    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
-    print(MAE)
-    print(RMSE)
+    # T = 5
+    # print(T)
+    # MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    # print(MAE)
+    # print(RMSE)
 
-    T = 5
-    print(T)
-    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
-    print(MAE)
-    print(RMSE)
+    # T = 10
+    # print(T)
+    # MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    # print(MAE)
+    # print(RMSE)
 
-    T = 10
-    print(T)
-    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
-    print(MAE)
-    print(RMSE)
-
-    T = 15
-    print(T)
-    MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
-    print(MAE)
-    print(RMSE)
+    # T = 15
+    # print(T)
+    # MAE, RMSE = SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T)
+    # print(MAE)
+    # print(RMSE)
 
     return
 
