@@ -130,6 +130,7 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
             delta_M_i_v = np.zeros([m, d])
 
             for v_i in I_r_u[usr_id]:
+                if v_i == item_id: continue
                 delta_M_i_v[v_i - 1] = -e_ui / math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id])) * V[item_id - 1] + alpha_w * M.reshape(m, d)[v_i - 1]
             
             mu -= gamma * delta_mu
@@ -152,8 +153,9 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
         rating = row[2]
         U_MPC_u = np.zeros([1, d])
         for v_i in I_r_u[usr_id]:
+            if v_i == item_id: continue
             U_MPC_u += M.reshape(m, d)[v_i - 1]
-        U_MPC_u /= math.sqrt(abs(sum(I_r_u[usr_id].values())))
+        U_MPC_u /= math.sqrt(abs(sum(I_r_u[usr_id].values() -  I_r_u[usr_id][item_id])))
         r_ui_prediction = MF_MPC_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1), U_MPC_u, min_value, max_value)
         
         bias_sum += abs(r_ui_prediction - rating)
