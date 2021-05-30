@@ -21,7 +21,6 @@ def SVDpp_initialization(d):
     r_mean = r_sum / training_data_length
 
     r_usr = {}
-    r_usr_mean = {}
     for index, row in training_data.iterrows():
         usr_id = row[0]
         item_id = row[1]
@@ -30,17 +29,8 @@ def SVDpp_initialization(d):
         if r_usr[usr_id] == None:
             r_usr[usr_id] = {}
         r_usr[usr_id][item_id] = rate
-    
-    for usr_id in r_usr:
-        r_usr_mean[usr_id] = sum(r_usr[usr_id].values()) / len(r_usr[usr_id]) 
-    
-    for usr_id in range(1, n):
-        r_usr_mean.setdefault(usr_id)
-        if r_usr_mean[usr_id] == None:
-            r_usr_mean[usr_id] = r_mean
 
     r_item = {}
-    r_item_mean = {}
     for index, row in training_data.iterrows():
         usr_id = row[0]
         item_id = row[1]
@@ -50,13 +40,6 @@ def SVDpp_initialization(d):
             r_item[item_id] = {}
         r_item[item_id][usr_id] = rate
     
-    for item_id in r_item:
-        r_item_mean[item_id] = sum(r_item[item_id].values()) / len(r_item[item_id])
-
-    for item_id in range(1, m):
-        r_item_mean.setdefault(item_id)
-        if r_item_mean[item_id] == None:
-            r_item_mean[item_id] = r_mean
 
     b_usr = {}
     b_item = {}
@@ -68,7 +51,7 @@ def SVDpp_initialization(d):
         
         b_len = len(r_usr[usr_id])
         for item_id in r_usr[usr_id]:
-            b += r_usr[usr_id][item_id] - r_item_mean[item_id]
+            b += r_usr[usr_id][item_id] - r_mean
 
         b /= b_len
         b_usr[usr_id] = b
@@ -81,7 +64,7 @@ def SVDpp_initialization(d):
 
         b_len = len(r_item[item_id])
         for usr_id in r_item[item_id]:
-            b += r_item[item_id][usr_id] - r_usr_mean[usr_id]
+            b += r_item[item_id][usr_id] - r_mean
         
         b /= b_len
         b_item[item_id] = b
