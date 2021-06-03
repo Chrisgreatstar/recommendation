@@ -172,13 +172,14 @@ def BPR(I, I_u, r, b_item, U, V, alpha_u, alpha_v, beta_v, gamma, T, d):
             I_re[u] = I_re_u
         else:
             I_re[u] = [i for i in I_re_u if i not in I_u[u]]
+
     return I_re
 
 
 def main():
     alpha_u = alpha_v = beta_v = 0.01
     gamma = 0.01
-    T = 500
+    T = 1000
     d = 20
 
     r_usr, I_u, I, r_te, I_te, U_te, b_item, U, V = initialization(d)
