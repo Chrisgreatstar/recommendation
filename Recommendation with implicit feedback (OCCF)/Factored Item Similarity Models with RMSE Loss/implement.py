@@ -70,7 +70,26 @@ def initialization(d):
             r_item[item_id].append(usr_id)
         if not item_id in I_u[usr_id]:
             I_u[usr_id].append(item_id)
+
+    I_u_com = {}
+    for u in range(1, n + 1):
+        I_u_com.setdefault(i)
+        if I_u_com[u] == None:
+            I_u_com[u] = []
+        if not u in I_u:
+            I_u_com[u] = range(1, m + 1)
+            continue
+        for i in range(1, m + 1):
+            if not i in I_u[u]:
+                I_u_com[u].append(i)
     
+    b_usr = {}
+    for usr_id in range(1, n + 1):
+        if not usr_id in r:
+            b_usr[usr_id] = -mu
+            continue
+        b_usr[usr_id] = len(r[usr_id]) / m - mu
+
     b_item = {}
     for item_id in range(1, m + 1):
         if not item_id in r_item:
@@ -101,41 +120,43 @@ def initialization(d):
         if not item_id in I_te[usr_id]:
             I_te[usr_id].append(item_id)
     
-    U = (np.random.random((n,d)) - 0.5) * 0.01
+    W = (np.random.random((n,d)) - 0.5) * 0.01
     V = (np.random.random((m,d)) - 0.5) * 0.01
 
-    return r, I_u, I, r_te, I_te, U_te, b_item, U, V
+    return r, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, W, V
 
-def prediction(b_i, U_u, V_i_T):
-    return b_i + U_u @ V_i_T 
+def prediction(i, alpha, b_u, b_i, I_u, W, V_i_T):
+    len_U_u_ = len(I_u)
+    if i in I_u:
+        len_U_u_ -= 1
+    U_u_ = (len_U_u_ ** alpha) * (sum(W.values()) - W[i - 1])
+    return b_u + b_i + U_u_ @ V_i_T 
 
-def sigmoid(z):
-    return 1 / (1 + math.exp(-z))
-
-def BPR(I, I_u, r, b_item, U, V, alpha_u, alpha_v, beta_v, gamma, T, d):
+def FISM_rmse(I, I_u, I_u_com, r, b_usr, b_item, W, V, alpha, alpha_v, alpha_w, beta_u, beta_v, gamma, T, d, rho):
     # training
+    A_length = rho * training_data_length
+    _P = [(u, i) for u, items in I_u_com.items() for i in items]
     for t in range(T):
         print(t)
-        ui = [(k, v) for k,vs in I_u.items() for v in vs]
-        random.shuffle(ui)
-        for (u, i) in ui: 
-            j = random.choice(list(set(I) - set(I_u[u])))
-
-            # notation
-            U_u = U[u - 1].reshape(1, d)
+        A = random.sample(_P, A_length)
+        PAunion = A.extend([(u, i) for u, items in I_u.items() for i in items])
+        random.shuffle(PAunion)
+        for (u, i) in PAunion:
+            r_ui = 1
+            if (u, i) in A:
+                r_ui = 0
+            
             V_i = V[i - 1].reshape(1, d)
-            V_j = V[j - 1].reshape(1, d)
+
+            b_u = b_usr[u]
             b_i = b_item[i]
-            b_j = b_item[j]
             V_i_T = V[i - 1].reshape(d, 1)
-            V_j_T = V[j - 1].reshape(d, 1)
 
             # prediction
-            r_p_ui = prediction(b_i, U_u, V_i_T)
-            r_p_uj = prediction(b_j, U_u, V_j_T)
+            r_p_ui = prediction(i, alpha, b_u, b_i, I_u, W, V_i_T)
 
             # calculate gradient
-            e_ui = sigmoid(r_p_uj - r_p_ui)
+            e_ui = r_ui - r_p_ui
             delta_U_u = -e_ui * (V_i - V_j) + alpha_u * U_u
             delta_V_i = -e_ui * U_u + alpha_v * V_i
             delta_V_j = -e_ui * (-U_u) + alpha_v * V_j
@@ -143,47 +164,40 @@ def BPR(I, I_u, r, b_item, U, V, alpha_u, alpha_v, beta_v, gamma, T, d):
             delta_b_j = -e_ui * (-1) + beta_v * b_j
 
             # update parameters
+            b_item[i] -= gamma *  delta_b_i
+            b_item[j] -= gamma * delta_b_j
             U[u - 1] -= gamma * delta_U_u.reshape(d)
             V[i - 1] -= gamma * delta_V_i.reshape(d)
             V[j - 1] -= gamma * delta_V_j.reshape(d)
-            b_item[i] -= gamma *  delta_b_i
-            b_item[j] -= gamma * delta_b_j
 
     # prediction matrix
-    r_pre = {}
-    for u in range(1, n + 1):
-        r_pre.setdefault(u)
-        if r_pre[u] == None:
-            r_pre[u] = {}
-        U_u = U[u - 1].reshape(1, d)
-        for i in range(1, m + 1):
-            b_i = b_item[i]
-            V_i_T = V[i - 1].reshape(d, 1)
-            r_pre[u][i] = prediction(b_i, U_u, V_i_T)
-
-    # ranked recommandation matrix
     I_re = {}
     for u in range(1, n + 1):
         I_re.setdefault(u)
         if I_re[u] == None:
-            I_re[u] = []
-        I_re_u = list(dict(sorted(r_pre[u].items(), key=lambda item: item[1], reverse=True)).keys())
-        if not u in I_u:
-            I_re[u] = I_re_u
-        else:
-            I_re[u] = [i for i in I_re_u if i not in I_u[u]]
+            I_re[u] = {}
+        for i in range(1, m + 1):
+            b_i = b_item[i]
+            U_u = U[u - 1].reshape(1, d)
+            V_i_T = V[i - 1].reshape(d, 1)
+            I_re[u][i] = prediction(b_i, U_u, V_i_T)
+        I_re[u] = list(dict(sorted(I_re[u].items(), key=lambda item: item[1], reverse=True)).keys())
+
     return I_re
 
 
+
 def main():
-    alpha_u = alpha_v = beta_v = 0.01
+    alpha = 0.5
+    alpha_w = alpha_v = beta_u = beta_v = 0.001
     gamma = 0.01
-    T = 500
+    T = 100
+    rho = 3
     d = 20
 
-    r_usr, I_u, I, r_te, I_te, U_te, b_item, U, V = initialization(d)
+    r_usr, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, W, V = initialization(d)
 
-    I_re = BPR(I, I_u, r_usr, b_item, U, V, alpha_u, alpha_v, beta_v, gamma, T, d)
+    I_re = FISM_rmse(I, I_u, I_u_com, r, b_item, U, V, alpha, alpha_v, alpha_w, beta_u, beta_v, gamma, T, d, rho)
 
     k = 5
     pre_score = Pre(k, U_te, I_re, I_te)
