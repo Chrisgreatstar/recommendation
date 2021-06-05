@@ -121,117 +121,71 @@ def initialization(d):
         if not item_id in I_te[usr_id]:
             I_te[usr_id].append(item_id)
     
-    W = (np.random.random((m,d)) - 0.5) * 0.01
+    U = (np.random.random((n,d)) - 0.5) * 0.01
     V = (np.random.random((m,d)) - 0.5) * 0.01
 
-    return r, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, b_item, W, V
+    return r, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, U, V
 
-def prediction(b_i, U_minusi_i_u, V_i_T):
-    return b_i + U_minusi_i_u @ V_i_T 
+def prediction(b_u, b_i, U_u, V_i_T):
+    return b_u + b_i + U_u @ V_i_T 
 
-
-def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho):
+def MFLogLoss(I, I_u, I_u_com, r, b_usr, b_item, U, V, alpha_u, alpha_v, beta_u, beta_v, gamma, T, d, rho):
     # training
-    print("training... ")
-    A_u_length = rho
+    print('training... ')
+    A_length = rho * training_data_length
+    _P = [(u, i) for u, items in I_u_com.items() for i in items]
     for t in range(T):
         print(t)
-        for u, items in I_u.items():
-            for i in items:
-                minus_i_len = len(I_u[u]) - 1                
-                U_minus_i_u = np.zeros([1, d])
-                if minus_i_len > 0:
-                    for minus_i in I_u[u]:
-                        if minus_i == i:
-                            continue
-                        U_minus_i_u += W[minus_i - 1].reshape(1, d)
-                    U_minus_i_u /= (minus_i_len ** alpha)
+        A = random.sample(_P, k = A_length)
+        PAunion = A + [(u, i) for u, items in I_u.items() for i in items]
+        random.shuffle(PAunion)
+        for (u, i) in PAunion:
+            # ?
+            if u not in I_u:
+                continue
 
-                i_len = len(I_u[u])
-                U_i_u = np.zeros([1, d])
-                for ii in I_u[u]:
-                    U_i_u += W[ii - 1].reshape(1, d)
-                U_i_u /= (i_len ** alpha)
+            r_ui = 1
+            if (u, i) in A:
+                r_ui = -1
+            
+            U_u = U[u - 1].reshape(1, d)
+            V_i = V[i - 1].reshape(1, d)
+            b_u = b_usr[u]
+            b_i = b_item[i]
+            V_i_T = V[i - 1].reshape(d, 1)
 
-                V_i = V[i - 1].reshape(1, d)
-                V_i_T = V[i - 1].reshape(d, 1)
-                W_i = W[i - 1].reshape(1, d)
-                
-                # prediction on (u, i)
-                r_p_ui = prediction(b_i[i], U_minus_i_u, V_i_T)
+            # prediction
+            r_p_ui = prediction(b_u, b_i, U_u, V_i_T)
 
-                A_u = random.sample(set(I) - set(I_u[u]), k = A_u_length)
-                delta_b_i = beta_v * b_i[i]
-                delta_V_i = alpha_v * V_i
+            # calculate gradient
+            e_ui = r_ui / ( 1 +  math.exp(r_ui * r_p_ui))
+            delta_b_u = -e_ui + beta_u * b_u
+            delta_b_i = -e_ui + beta_v * b_i
+            delta_V_i = -e_ui * U_u + alpha_v * V_i
+            delta_U_u = -e_ui * V_i + alpha_u * U_u
 
-                delta_W_minus_i = np.zeros([m, d])
-                delta_W_i = np.zeros([1, d])
-                for ii in I_u[u]:
-                    if ii != i:
-                        delta_W_minus_i[ii - 1] = alpha_w * W[ii - 1].reshape(d)
-                    else:
-                        delta_W_i = alpha_w * W[ii - 1].reshape(1, d)
-
-                for j in A_u:
-                    V_j = V[j - 1].reshape(1, d)
-                    V_j_T = V[j - 1].reshape(d, 1)
-
-                    # prediction on (u, j)
-                    r_p_uj = prediction(b_j[j], U_i_u, V_j_T)
-                    e_uij = (1 - (r_p_ui - r_p_uj)) / A_u_length
-
-                    delta_b_j = e_uij + beta_v * b_j[j]
-                    delta_V_j = e_uij * U_i_u + alpha_v * V_j
-
-                    delta_b_i += -e_uij
-                    delta_V_i += -e_uij * U_minus_i_u
-
-                    for ii in I_u[u]:
-                        if ii != i:
-                            delta_W_minus_i[ii - 1] += (-e_uij * (V_i / (minus_i_len ** alpha) - V_j / (i_len ** alpha))).reshape(d)
-                        else:
-                            delta_W_i += -e_uij * (-V_j) / (i_len ** alpha)
-
-                    # update b_j and V_j
-                    b_j[j] -= gamma * delta_b_j
-                    V[j - 1] -= gamma * delta_V_i.reshape(d)
-
-                # update b_i and V_i
-                b_i[i] -= gamma * delta_b_i
-                V[i - 1] -= gamma * delta_V_j.reshape(d)
-
-                # update W_i and W_minus_i
-                for ii in I_u[u]:
-                    if ii != i:
-                        W[ii - 1] -= gamma * delta_W_minus_i[ii - 1].reshape(d)
-                    else:
-                        W[ii - 1] -= gamma * delta_W_i.reshape(d)
-
-    
+            # update parameters
+            b_item[i] -= gamma *  delta_b_i
+            b_usr[u] -= gamma * delta_b_u
+            V[i - 1] -= gamma * delta_V_i.reshape(d)
+            U[u - 1] -= gamma * delta_U_u.reshape(d)
+            
     # prediction matrix
-    print("prediction generating... ")
+    print('prediction generating... ')
     r_pre = {}
     for u in range(1, n + 1):
         r_pre.setdefault(u)
         if r_pre[u] == None:
             r_pre[u] = {}
-        for j in range(1, m + 1):
-            if u in I_u and j in I_u[u]:
-                continue
-
-            U_i_u = np.zeros([1, d])
-            if u in I_u:
-                i_len = len(I_u[u])
-                for i in I_u[u]:
-                    U_i_u += W[i - 1].reshape(1, d)
-                U_i_u /= (i_len ** alpha)
-
-            V_j_T = V[j - 1].reshape(d, 1)
-
-            r_pre[u][j] = prediction(b_j[j], U_i_u, V_j_T)
+        for i in range(1, m + 1):
+            b_u = b_usr[u]
+            b_i = b_item[i]
+            U_u = U[u - 1].reshape(1, d)
+            V_i_T = V[i - 1].reshape(d, 1)
+            r_pre[u][i] = prediction(b_u, b_i, U_u, V_i_T)
 
     # ranked recommandation matrix
-    print("ranking... ")
+    print('ranking... ')
     I_re = {}
     for u in range(1, n + 1):
         I_re.setdefault(u)
@@ -246,22 +200,17 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
     return I_re
 
 
-
 def main():
-    alpha = 0.5
-    alpha_w = alpha_v = beta_v = 0.001
+    alpha_u = alpha_v = beta_u = beta_v = 0.001
     gamma = 0.01
-    # length of A_u
     rho = 3
     d = 20
 
-    print("FISM_auc")
-
-    r_usr, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_i, b_j, W, V = initialization(d)
-
-    T = 1000
+    r_usr, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, U, V = initialization(d)
+    
+    T = 100
     print("T = " + str(T))
-    I_re = FISM_auc(I, I_u, I_u_com, r_usr, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho)
+    I_re = MFLogLoss(I, I_u, I_u_com, r_usr, b_usr, b_item, U, V, alpha_u, alpha_v, beta_u, beta_v, gamma, T, d, rho)
 
     k = 5
     pre_score = Pre(k, U_te, I_re, I_te)
