@@ -179,7 +179,7 @@ def BPR(I, I_u, r, b_item, U, V, alpha_u, alpha_v, beta_v, gamma, T, d):
 def main():
     alpha_u = alpha_v = beta_v = 0.01
     gamma = 0.01
-    T = 1000
+    T = 500
     d = 20
 
     r_usr, I_u, I, r_te, I_te, U_te, b_item, U, V = initialization(d)
