@@ -102,7 +102,13 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
             for v_i in I_r_u[usr_id]:
                 if v_i == item_id: continue
                 U_MPC_u += M.reshape(m, d)[v_i - 1]
-            U_MPC_u /= math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id]))
+            
+            # Misunderstanding formula (8)
+            # U_MPC_u /= math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id]))
+
+            if len(I_r_u[usr_id]) > 1:
+                U_MPC_u /= math.sqrt(len(I_r_u[usr_id]) - 1)
+
 
             prediction = MF_MPC_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1), U_MPC_u)
             e_ui = rating - prediction
@@ -115,7 +121,10 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
 
             for v_i in I_r_u[usr_id]:
                 if v_i == item_id: continue
-                delta_M_i_v[v_i - 1] = -e_ui / math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id])) * V[item_id - 1] + alpha_w * M.reshape(m, d)[v_i - 1]
+                # Misunderstanding formula (15)
+                # delta_M_i_v[v_i - 1] = -e_ui / math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id])) * V[item_id - 1] + alpha_w * M.reshape(m, d)[v_i - 1]
+                if len(I_r_u[usr_id]) > 1:
+                    delta_M_i_v[v_i - 1] = -e_ui / math.sqrt(len(I_r_u[usr_id]) - 1) * V[item_id - 1] + alpha_w * M.reshape(m, d)[v_i - 1]
             
             mu -= gamma * delta_mu
             b_u[usr_id] -= gamma *  delta_b_u
@@ -127,6 +136,7 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
                 M[v_i - 1] -= gamma * delta_M_i_v[v_i - 1]
 
         gamma *= 0.9
+        break
 
 
     bias_sum = 0
@@ -153,7 +163,7 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
 def main():
     alpha_u = alpha_v = alpha_w = beta_u = beta_v = MFMPC_lambda = 0.001
     gamma = 0.01
-    T = 50
+    T = 1
     d = 20
     
 
