@@ -194,11 +194,11 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
 
                     # update b_j and V_j
                     b_j[j] -= gamma * delta_b_j
-                    V[j - 1] -= gamma * delta_V_i.reshape(d)
+                    V[j - 1] -= gamma * delta_V_j.reshape(d)
 
                 # update b_i and V_i
                 b_i[i] -= gamma * delta_b_i
-                V[i - 1] -= gamma * delta_V_j.reshape(d)
+                V[i - 1] -= gamma * delta_V_i.reshape(d)
 
                 # update W_i and W_minus_i
                 for ii in I_u[u]:
@@ -259,7 +259,7 @@ def main():
 
     r_usr, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_i, b_j, W, V = initialization(d)
 
-    T = 1000
+    T = 500
     print("T = " + str(T))
     I_re = FISM_auc(I, I_u, I_u_com, r_usr, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho)
 

@@ -136,7 +136,6 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
                 M[v_i - 1] -= gamma * delta_M_i_v[v_i - 1]
 
         gamma *= 0.9
-        break
 
 
     bias_sum = 0
