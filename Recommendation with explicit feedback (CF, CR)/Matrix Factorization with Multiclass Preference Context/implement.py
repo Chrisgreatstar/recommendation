@@ -163,7 +163,7 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
 def main():
     alpha_u = alpha_v = alpha_w = beta_u = beta_v = MFMPC_lambda = 0.001
     gamma = 0.01
-    T = 1
+    T = 50
     d = 20
     
 
