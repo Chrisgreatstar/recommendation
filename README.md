@@ -15,3 +15,5 @@
 6.5.21 FISM_rmse: pointwise, FIMSE_auc: pairwise
 
 6.6.21 复现MF-MPC时, 错误理解公式(8)和(15)中|I_r_u \ {i}|为求值的合的绝对值, 应该是取集合长度。
+
+6.9.21 还有不对的算法: MF-MPC和FISM_auc
