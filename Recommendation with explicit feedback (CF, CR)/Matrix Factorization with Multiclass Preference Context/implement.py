@@ -160,8 +160,6 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
                 elif I_r_u[usr_id][v_i] == 5:
                     delta_M_i_v_5[v_i - 1] = -e_ui / (l_5 ** 0.5) * V[item_id - 1] + alpha_w * M_5.reshape(m, d)[v_i - 1]
                 
-
-
             mu -= gamma * delta_mu
             b_u[usr_id] -= gamma *  delta_b_u
             b_i[item_id] -= gamma * delta_b_i
@@ -170,15 +168,15 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
             for v_i in I_r_u[usr_id]:
                 if v_i == item_id: continue
                 if I_r_u[usr_id][v_i] == 1:
-                    M_1[v_i - 1] = -gamma * delta_M_i_v_1[v_i - 1]
+                    M_1[v_i - 1] -= gamma * delta_M_i_v_1[v_i - 1]
                 elif I_r_u[usr_id][v_i] == 2:
-                    M_2[v_i - 1] = -gamma * delta_M_i_v_2[v_i - 1]
+                    M_2[v_i - 1] -= gamma * delta_M_i_v_2[v_i - 1]
                 elif I_r_u[usr_id][v_i] == 3:
-                    M_3[v_i - 1] = -gamma * delta_M_i_v_3[v_i - 1]
+                    M_3[v_i - 1] -= gamma * delta_M_i_v_3[v_i - 1]
                 elif I_r_u[usr_id][v_i] == 4:
-                    M_4[v_i - 1] = -gamma * delta_M_i_v_4[v_i - 1]
+                    M_4[v_i - 1] -= gamma * delta_M_i_v_4[v_i - 1]
                 elif I_r_u[usr_id][v_i] == 5:
-                    M_5[v_i - 1] = -gamma * delta_M_i_v_5[v_i - 1]
+                    M_5[v_i - 1] -= gamma * delta_M_i_v_5[v_i - 1]
 
         gamma *= 0.9
 
