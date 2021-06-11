@@ -75,12 +75,9 @@ def MF_MPC_initialization(d, training_data):
 
     U = (np.random.random((n,d)) - 0.5) * 0.01
     V = (np.random.random((m,d)) - 0.5) * 0.01
-    M_1 = (np.random.random((m,d)) - 0.5) * 0.01
-    M_2 = (np.random.random((m,d)) - 0.5) * 0.01
-    M_3 = (np.random.random((m,d)) - 0.5) * 0.01
-    M_4 = (np.random.random((m,d)) - 0.5) * 0.01
-    M_5 = (np.random.random((m,d)) - 0.5) * 0.01
-    return r_mean, b_usr, b_item, U, V, M_1, M_2, M_3, M_4, M_5, I_r_u
+    M = (np.random.random((m,d)) - 0.5) * 0.01
+
+    return r_mean, b_usr, b_item, U, V, M, I_r_u
 
 
 def MF_MPC_prediction(mu, b_u, b_i, U_u, V_i_T, U_MPC_u):
@@ -92,7 +89,7 @@ def MF_MPC_prediction(mu, b_u, b_i, U_u, V_i_T, U_MPC_u):
 def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data, testing_data):
     training_data_length = training_data.index.size
     testing_data_length = testing_data.index.size
-    mu, b_u, b_i, U, V, M_1, M_2, M_3, M_4, M_5, I_r_u = MF_MPC_initialization(d, training_data)
+    mu, b_u, b_i, U, V, M, I_r_u = MF_MPC_initialization(d, training_data)
 
     # training
     for t in range(0, T):
@@ -102,40 +99,16 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
             item_id = row[1]
             rating = row[2]
             U_MPC_u = np.zeros([1, d])
-            U_MPC_u_1 = np.zeros([1, d])
-            U_MPC_u_2 = np.zeros([1, d])
-            U_MPC_u_3 = np.zeros([1, d])
-            U_MPC_u_4 = np.zeros([1, d])
-            U_MPC_u_5 = np.zeros([1, d])
-            l_1 = l_2 = l_3 = l_4 = l_5 = 0
             for v_i in I_r_u[usr_id]:
                 if v_i == item_id: continue
-                if I_r_u[usr_id][v_i] == 1:
-                    U_MPC_u_1 += M_1.reshape(m, d)[v_i - 1]
-                    l_1 += 1
-                elif I_r_u[usr_id][v_i] == 2:
-                    U_MPC_u_2 += M_2.reshape(m, d)[v_i - 1]
-                    l_2 += 1
-                elif I_r_u[usr_id][v_i] == 3:
-                    U_MPC_u_3 += M_3.reshape(m, d)[v_i - 1]
-                    l_3 += 1
-                elif I_r_u[usr_id][v_i] == 4:
-                    U_MPC_u_4 += M_4.reshape(m, d)[v_i - 1]
-                    l_4 += 1
-                elif I_r_u[usr_id][v_i] == 5:
-                    U_MPC_u_5 += M_5.reshape(m, d)[v_i - 1]
-                    l_5 += 1
-                
-            if l_1 > 0:
-                U_MPC_u += U_MPC_u_1 / (l_1 ** 0.5)
-            if l_2 > 0:
-                U_MPC_u += U_MPC_u_2 / (l_2 ** 0.5)
-            if l_3 > 0:
-                U_MPC_u += U_MPC_u_3 / (l_3 ** 0.5)
-            if l_4 > 0:
-                U_MPC_u += U_MPC_u_4 / (l_4 ** 0.5)
-            if l_5 > 0:
-                U_MPC_u += U_MPC_u_5 / (l_5 ** 0.5)
+                U_MPC_u += M.reshape(m, d)[v_i - 1]
+            
+            # Misunderstanding formula (8)
+            # U_MPC_u /= math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id]))
+
+            if len(I_r_u[usr_id]) > 1:
+                U_MPC_u /= math.sqrt(len(I_r_u[usr_id]) - 1)
+
 
             prediction = MF_MPC_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1), U_MPC_u)
             e_ui = rating - prediction
@@ -144,24 +117,15 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
             delta_b_i = -e_ui + beta_v * b_i[item_id]
             delta_U_u = -e_ui * V[item_id - 1] + alpha_u * U[usr_id - 1]
             delta_V_i = -e_ui * (U[usr_id - 1] + U_MPC_u) + alpha_v * V[item_id - 1]
+            delta_M_i_v = np.zeros([m, d])
 
-
-            delta_M_i_v_1 = delta_M_i_v_2 = delta_M_i_v_3 = delta_M_i_v_4 = delta_M_i_v_5 = np.zeros([m, d])
             for v_i in I_r_u[usr_id]:
                 if v_i == item_id: continue
-                if I_r_u[usr_id][v_i] == 1:
-                    delta_M_i_v_1[v_i - 1] = -e_ui / (l_1 ** 0.5) * V[item_id - 1] + alpha_w * M_1.reshape(m, d)[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 2:
-                    delta_M_i_v_2[v_i - 1] = -e_ui / (l_2 ** 0.5) * V[item_id - 1] + alpha_w * M_2.reshape(m, d)[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 3:
-                    delta_M_i_v_3[v_i - 1] = -e_ui / (l_3 ** 0.5) * V[item_id - 1] + alpha_w * M_3.reshape(m, d)[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 4:
-                    delta_M_i_v_4[v_i - 1] = -e_ui / (l_4 ** 0.5) * V[item_id - 1] + alpha_w * M_4.reshape(m, d)[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 5:
-                    delta_M_i_v_5[v_i - 1] = -e_ui / (l_5 ** 0.5) * V[item_id - 1] + alpha_w * M_5.reshape(m, d)[v_i - 1]
-                
-
-
+                # Misunderstanding formula (15)
+                # delta_M_i_v[v_i - 1] = -e_ui / math.sqrt(abs(sum(I_r_u[usr_id].values()) - I_r_u[usr_id][item_id])) * V[item_id - 1] + alpha_w * M.reshape(m, d)[v_i - 1]
+                if len(I_r_u[usr_id]) > 1:
+                    delta_M_i_v[v_i - 1] = -e_ui / math.sqrt(len(I_r_u[usr_id]) - 1) * V[item_id - 1] + alpha_w * M.reshape(m, d)[v_i - 1]
+            
             mu -= gamma * delta_mu
             b_u[usr_id] -= gamma *  delta_b_u
             b_i[item_id] -= gamma * delta_b_i
@@ -169,16 +133,7 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
             V[item_id - 1] -= gamma * delta_V_i.reshape(d)
             for v_i in I_r_u[usr_id]:
                 if v_i == item_id: continue
-                if I_r_u[usr_id][v_i] == 1:
-                    M_1[v_i - 1] = -gamma * delta_M_i_v_1[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 2:
-                    M_2[v_i - 1] = -gamma * delta_M_i_v_2[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 3:
-                    M_3[v_i - 1] = -gamma * delta_M_i_v_3[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 4:
-                    M_4[v_i - 1] = -gamma * delta_M_i_v_4[v_i - 1]
-                elif I_r_u[usr_id][v_i] == 5:
-                    M_5[v_i - 1] = -gamma * delta_M_i_v_5[v_i - 1]
+                M[v_i - 1] -= gamma * delta_M_i_v[v_i - 1]
 
         gamma *= 0.9
 
@@ -190,41 +145,10 @@ def MF_MPC(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T, training_data
         item_id = row[1]
         rating = row[2]
         U_MPC_u = np.zeros([1, d])
-        U_MPC_u_1 = np.zeros([1, d])
-        U_MPC_u_2 = np.zeros([1, d])
-        U_MPC_u_3 = np.zeros([1, d])
-        U_MPC_u_4 = np.zeros([1, d])
-        U_MPC_u_5 = np.zeros([1, d])
-        l_1 = l_2 = l_3 = l_4 = l_5 = 0
         for v_i in I_r_u[usr_id]:
             if v_i == item_id: continue
-            if I_r_u[usr_id][v_i] == 1:
-                U_MPC_u_1 += M_1.reshape(m, d)[v_i - 1]
-                l_1 += 1
-            elif I_r_u[usr_id][v_i] == 2:
-                U_MPC_u_2 += M_2.reshape(m, d)[v_i - 1]
-                l_2 += 1
-            elif I_r_u[usr_id][v_i] == 3:
-                U_MPC_u_3 += M_3.reshape(m, d)[v_i - 1]
-                l_3 += 1
-            elif I_r_u[usr_id][v_i] == 4:
-                U_MPC_u_4 += M_4.reshape(m, d)[v_i - 1]
-                l_4 += 1
-            elif I_r_u[usr_id][v_i] == 5:
-                U_MPC_u_5 += M_5.reshape(m, d)[v_i - 1]
-                l_5 += 1
-            
-        if l_1 > 0:
-            U_MPC_u += U_MPC_u_1 / (l_1 ** 0.5)
-        if l_2 > 0:
-            U_MPC_u += U_MPC_u_2 / (l_2 ** 0.5)
-        if l_3 > 0:
-            U_MPC_u += U_MPC_u_3 / (l_3 ** 0.5)
-        if l_4 > 0:
-            U_MPC_u += U_MPC_u_4 / (l_4 ** 0.5)
-        if l_5 > 0:
-            U_MPC_u += U_MPC_u_5 / (l_5 ** 0.5)
-
+            U_MPC_u += M.reshape(m, d)[v_i - 1]
+        U_MPC_u /= math.sqrt(abs(sum(I_r_u[usr_id].values())))
         r_ui_prediction = MF_MPC_prediction(mu, b_u[usr_id], b_i[item_id], U[usr_id - 1].reshape(1, d), V[item_id - 1].reshape(d, 1), U_MPC_u)
         
         bias_sum += abs(r_ui_prediction - rating)

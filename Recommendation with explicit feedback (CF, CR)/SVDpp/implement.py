@@ -151,7 +151,6 @@ def SVDpp(alpha_u, alpha_v, alpha_w, beta_u, beta_v, gamma, d, T):
 
     return MAE, RMSE
 
-    return 
 
 def main():
     alpha_u = alpha_v = alpha_w = beta_u = beta_v = 0.01
