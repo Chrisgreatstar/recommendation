@@ -1,4 +1,3 @@
-#!/usr/bin/env pypy
 import math
 import random
 import numpy as np

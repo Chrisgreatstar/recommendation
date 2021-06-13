@@ -1,4 +1,3 @@
-#!/usr/bin/env pypy
 import math
 import random
 import numpy as np
@@ -124,13 +123,12 @@ def initialization(d):
     W = (np.random.random((m,d)) - 0.5) * 0.01
     V = (np.random.random((m,d)) - 0.5) * 0.01
 
-    return r, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, b_item, W, V
+    return r, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_item, W, V
 
 def prediction(b_i, U_minusi_i_u, V_i_T):
     return b_i + U_minusi_i_u @ V_i_T 
 
-
-def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho):
+def FISM_auc(I, I_u, I_u_com, r, b_i, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho):
     # training
     print("training... ")
     A_u_length = rho
@@ -177,10 +175,10 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
                     V_j_T = V[j - 1].reshape(d, 1)
 
                     # prediction on (u, j)
-                    r_p_uj = prediction(b_j[j], U_i_u, V_j_T)
+                    r_p_uj = prediction(b_i[j], U_i_u, V_j_T)
                     e_uij = (1 - (r_p_ui - r_p_uj)) / A_u_length
 
-                    delta_b_j = e_uij + beta_v * b_j[j]
+                    delta_b_j = e_uij + beta_v * b_i[j]
                     delta_V_j = e_uij * U_i_u + alpha_v * V_j
 
                     delta_b_i += -e_uij
@@ -193,7 +191,7 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
                             delta_W_i += -e_uij * (-V_j) / (i_len ** alpha)
 
                     # update b_j and V_j
-                    b_j[j] -= gamma * delta_b_j
+                    b_i[j] -= gamma * delta_b_j
                     V[j - 1] -= gamma * delta_V_j.reshape(d)
 
                 # update b_i and V_i
@@ -206,8 +204,7 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
                         W[ii - 1] -= gamma * delta_W_minus_i[ii - 1].reshape(d)
                     else:
                         W[ii - 1] -= gamma * delta_W_i.reshape(d)
-
-    
+        
     # prediction matrix
     print("prediction generating... ")
     r_pre = {}
@@ -227,8 +224,7 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
                 U_i_u /= (i_len ** alpha)
 
             V_j_T = V[j - 1].reshape(d, 1)
-
-            r_pre[u][j] = prediction(b_j[j], U_i_u, V_j_T)
+            r_pre[u][j] = prediction(b_i[j], U_i_u, V_j_T)
 
     # ranked recommandation matrix
     print("ranking... ")
@@ -246,10 +242,9 @@ def FISM_auc(I, I_u, I_u_com, r, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w,
     return I_re
 
 
-
 def main():
     alpha = 0.5
-    alpha_w = alpha_v = beta_v = 0.001
+    alpha_w = alpha_v = beta_v = 0.01
     gamma = 0.01
     # length of A_u
     rho = 3
@@ -257,18 +252,20 @@ def main():
 
     print("FISM_auc")
 
-    r_usr, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_i, b_j, W, V = initialization(d)
-
-    T = 500
-    print("T = " + str(T))
-    I_re = FISM_auc(I, I_u, I_u_com, r_usr, b_usr, b_i, b_j, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho)
-
+    r_usr, I_u, I_u_com, I, r_te, I_te, U_te, b_usr, b_i, W, V = initialization(d)
+    
+    # T = 100, 500, 1000
+    Ts = [100, 400, 500]
     k = 5
-    pre_score = Pre(k, U_te, I_re, I_te)
-    print("Pre@" + str(k) + ": " + str(pre_score))
+    for T in Ts:
+        print("T = " + str(T))
+        I_re = FISM_auc(I, I_u, I_u_com, r_usr, b_i, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho)
 
-    rec_score = Rec(k, U_te, I_re, I_te)
-    print("Rec@" + str(k) + ": " + str(rec_score))
+        pre_score = Pre(k, U_te, I_re, I_te)
+        print("Pre@" + str(k) + ": " + str(pre_score))
+
+        rec_score = Rec(k, U_te, I_re, I_te)
+        print("Rec@" + str(k) + ": " + str(rec_score))
 
 
 if __name__ == '__main__':
