@@ -257,8 +257,10 @@ def main():
     # T = 100, 500, 1000
     Ts = [100, 400, 500]
     k = 5
+    sum_T = 0
     for T in Ts:
-        print("T = " + str(T))
+        sum_T += T
+        print("T = " + str(sum_T))
         I_re = FISM_auc(I, I_u, I_u_com, r_usr, b_i, W, V, alpha, alpha_v, alpha_w, beta_v, gamma, T, d, rho)
 
         pre_score = Pre(k, U_te, I_re, I_te)
