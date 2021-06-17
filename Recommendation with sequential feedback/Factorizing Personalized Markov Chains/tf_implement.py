@@ -3,9 +3,6 @@ import pandas as pd
 import tensorflow as tf
 import math
 import random
-import sys
-sys.path.insert(1, '../../utils')
-from ranking_evaluation import Pre, Rec, NDCG
 
 def preprocess_data(data, n, m):
     # count rating times of user and item
@@ -27,30 +24,35 @@ def preprocess_data(data, n, m):
         if item_rating_count[item_id] >= 5:
             I.append(item_id)
 
-    
+    P = []
+    I_u = [[] for i in range(n + 1)]
+    S_u = [[] for i in range(n + 1)]
     # I_u with timestamp
     I_u_t = [{} for i in range(n + 1)]
     for index, row in data.iterrows():
         usr_id = row[0]
         item_id = row[1]
         timestamp = row[3]
-        if usr_id in U and item_id in I:            
+        if usr_id in U and item_id in I:
+            P.append((usr_id, item_id))
+            I_u[usr_id].append(item_id)
             I_u_t[usr_id][item_id] = timestamp
-
-    P = []
-    I_u = [[] for i in range(n + 1)]
-    S_u = [[] for i in range(n + 1)]
+    
     I_te = [[] for i in range(n + 1)]
     for u in U:
         tmp_list = sorted(I_u_t[u].items(), key=lambda item: item[1])
-        last_timestamp = tmp_list[-1][1]
         for (k, v) in tmp_list:
-            if v != last_timestamp:
-                P.append((u, k))
-                S_u[u].append(k)
-                I_u[u].append(k)
-            else:
-                I_te[u].append(k)
+            S_u[u].append(k)
+
+        last_timestamp = tmp_list[-1][1]
+        last_indices = []
+        for k, v in I_u_t[u].items():
+            if v == last_timestamp:
+                last_indices.append(k)
+
+        for i in last_indices:
+            I_te[u].append(i)
+            I_u[u].remove(i)
 
     return  U, I, P, I_u, S_u, I_te
 
@@ -61,7 +63,6 @@ def prediction(U_u, V_i_T, P_i, Q_i_T):
 def sigmoid(z):
     return 1 / (1 + math.exp(-z))
 
-# without validation
 def FPMC(n, m, d, U, I, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alpha_v, alpha_p, alpha_q):
     # training
     for t_trainning in range(T):
@@ -72,9 +73,13 @@ def FPMC(n, m, d, U, I, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alph
 
         for (u, i) in P:
             t = S_u[u].index(i)
+ 
+            # from the second item to the third last item (the second last item for validation and the last item for testing)
+            # if t == 0 or t > len(S_u[u]) - 3:
+            #     continue
 
             # from the second item to the second last item (the last item for testing)
-            if t == 0:
+            if t == 0 or t > len(S_u[u]) - 2:
                 continue
             
             j = random.sample(set(I) - set(I_u[u]), k = 1)
@@ -137,8 +142,7 @@ def main():
     data = pd.read_csv(data_file_path, delim_whitespace=True, index_col=False, header=None) 
 
     # tradeoff parameters
-    # set first T = 1 to debug
-    Ts = [1, 100, 500, 1000]
+    Ts = [100, 500, 1000]
     d = 20
     gamma = 0.01
     alpha_u = alpha_v = alpha_p = alpha_q = 0.001 # 0.1, 0.01, 0.001
@@ -161,24 +165,7 @@ def main():
     print('k = ' + str(k))
 
     # training 
-    T_trained = 0
-    for T_objective in Ts:
-        T = T_objective - T_trained
-        print('T = ' + str(T_objective))
-
-        I_re = FPMC(n, m, d, U, I, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alpha_v, alpha_p, alpha_q)
-
-        pre_score = Pre(k, U, I_re, I_te)
-        print("Pre@" + str(k) + ": " + str(pre_score))
-
-        rec_score = Rec(k, U, I_re, I_te)
-        print("Rec@" + str(k) + ": " + str(rec_score))
-
-        ndcg_score = NDCG(k, U, I_re, I_te)
-        print("NDCG@" + str(k) + ": " + str(ndcg_score))
-
-        T_trained = T_objective
-
+    
 
 if __name__ == '__main__':
     main()
