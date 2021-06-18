@@ -18,11 +18,9 @@ The full implementation of [Ranking Evaluation](https://github.com/Chrisgreatsta
 
 
 ### Recommendation with sequential feedback
-Take user-interacted items sorted by time sequence as input.
+Take user-interacted items sorted by time sequence as input and evaluated by Ranking-Oriented Evaluation Metrics.
 
-Evaluated by Ranking-Oriented Evaluation Metrics.
-
-code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py)
+See code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py)
 
 
 
