@@ -1,10 +1,7 @@
 ## Fundamentals of Recommender Systems
-Implementation of [Recommender Systems](http://csse.szu.edu.cn/staff/panwk/recommendation/).
+Implementation of [Recommender Systems](http://csse.szu.edu.cn/staff/panwk/recommendation/), including all slides of **Recommendation with explicit feedback**, machine learning based methods of **Recommendation with implicit feedback** and the slide **Factorizing Personalized Markov Chains** of **Recommendation with sequential feedback**.
 
-Including all slides of **Recommendation with explicit feedback**, machine learning based methods of **Recommendation with implicit feedback** and the slide **Factorizing Personalized Markov Chains** of **Recommendation with sequential feedback**.
-
-### Recommendation with explicit feedback
-Explicit feedback means data format based on numerical ratings (or said Multi-class feedback).
+### Recommendation with explicit feedback (Multi-class feedback)
 
 Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the distance between the real rating and the predicted rating.
 
@@ -13,8 +10,7 @@ Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the 
 
 ![equation](https://latex.codecogs.com/gif.latex?RMSE&space;=&space;\sqrt{\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;(&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;)&space;^&space;2&space;/&space;|R^{te}|})
 
-### Recommendation with implicit feedback
-As One-class feedback.
+### Recommendation with implicit feedback (One-class feedback)
 
 Evaluated by Ranking-Oriented Evaluation Metrics as the rationality of ranking, e.g. the precision denotes the proportion of recommended items in the test set.
 
