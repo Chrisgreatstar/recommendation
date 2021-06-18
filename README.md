@@ -16,15 +16,11 @@ Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the 
 
 ### Recommendation with implicit feedback (One-class feedback)
 
-Evaluated by Ranking-Oriented Evaluation Metrics as the rationality of ranking, e.g. the precision denotes the proportion of recommended items in the test set.
-
-The full implementation of [Ranking Evaluation](https://github.com/Chrisgreatstar/recommendation/blob/main/utils/ranking_evaluation.py).
+Evaluated by Ranking-Oriented Evaluation Metrics as the rationality of ranking, e.g. the precision denotes the proportion of recommended items in the test set. The full implementation of [Ranking Evaluation](https://github.com/Chrisgreatstar/recommendation/blob/main/utils/ranking_evaluation.py).
 
 
 ### Recommendation with sequential feedback
-Take user-interacted items sorted by time sequence as input and evaluated by Ranking-Oriented Evaluation Metrics.
-
-See code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py)
+Take user-interacted items sorted by time sequence as input and evaluated by Ranking-Oriented Evaluation Metrics. See code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py)
 
 
 
