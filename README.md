@@ -1,7 +1,7 @@
 ## Fundamentals of Recommender Systems
 Implementation of [Recommender Systems](http://csse.szu.edu.cn/staff/panwk/recommendation/).
 
-Including all slides of [Recommendation with explicit feedback], machine learning based methods of [Recommendation with implicit feedback] and the slide [Factorizing Personalized Markov Chains] of [Recommendation with sequential feedback].
+Including all slides of **Recommendation with explicit feedback**, machine learning based methods of **Recommendation with implicit feedback** and the slide **Factorizing Personalized Markov Chains** of **Recommendation with sequential feedback**.
 
 ### Recommendation with explicit feedback
 Explicit feedback means data format based on numerical ratings (or said Multi-class feedback).
