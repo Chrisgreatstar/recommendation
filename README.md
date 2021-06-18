@@ -9,7 +9,9 @@ Optimizer: Stochastic Gradient Descent (SGD)
 
 Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the distance between the real ratings and the predicted ratings.
 
-![equation](https://latex.codecogs.com/gif.latex?MAE&space;=&space;\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;|&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;|&space;/&space;|R^{te}|)              ![equation](https://latex.codecogs.com/gif.latex?RMSE&space;=&space;\sqrt{\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;(&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;)&space;^&space;2&space;/&space;|R^{te}|})
+![equation](https://latex.codecogs.com/gif.latex?MAE&space;=&space;\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;|&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;|&space;/&space;|R^{te}|)
+
+![equation](https://latex.codecogs.com/gif.latex?RMSE&space;=&space;\sqrt{\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;(&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;)&space;^&space;2&space;/&space;|R^{te}|})
 
 ### Recommendation with implicit feedback (One-class feedback)
 
