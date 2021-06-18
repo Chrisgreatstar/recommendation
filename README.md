@@ -8,9 +8,10 @@ Explicit feedback means data format based on numerical ratings (or said Multi-cl
 
 Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the distance between the real rating and the predicted rating.
 
-    $MAE = \sum_{(u, i, r_{ui}) \in   R^{te}  }     | r_{ui} - \widehat{r}_{ui} | / |R^{te}|$
+![equation](https://latex.codecogs.com/gif.latex?MAE&space;=&space;\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;|&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;|&space;/&space;|R^{te}|)
 
-    $RMSE = \sqrt{\sum_{(u, i, r_{ui}) \in   R^{te}  }     ( r_{ui} - \widehat{r}_{ui} ) ^ 2 / |R^{te}|}$
+
+![equation](https://latex.codecogs.com/gif.latex?RMSE&space;=&space;\sqrt{\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;(&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;)&space;^&space;2&space;/&space;|R^{te}|})
 
 ### Recommendation with implicit feedback
 As One-class feedback.
