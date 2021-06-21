@@ -1,4 +1,4 @@
-Contributions of element-wise Alternative Least Squares (eALS):
+Contributions of element-wise Alternative Least Squares (eALS):
 
 1. Design L_2 and add it to L_eALS to assign a non-uniform weight to missing data based on item popularity i.e. s_k.
 
