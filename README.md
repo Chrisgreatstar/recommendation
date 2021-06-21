@@ -5,6 +5,9 @@ Dataset: [MovieLens 100k](https://grouplens.org/datasets/movielens/100k/)
 
 Optimizer: Stochastic Gradient Descent (SGD)
 
+See code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py) (using tensorflow: [Tensorflow Example](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/tf_implement.py))
+
+
 ### Recommendation with explicit feedback (Multi-class feedback)
 
 Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the distance between the real ratings and the predicted ratings. The calculation of MAE and RMSE as below:
@@ -45,7 +48,7 @@ State of understanding and implementation of slides regarding this subject:
 |  element-wise Alternative Least Squares (eALS) |       1       |      0      |
 
 ### Recommendation with sequential feedback
-Take user-interacted items sorted by time sequence as input and evaluated by Ranking-Oriented Evaluation Metrics. See code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py)
+Take user-interacted items sorted by time sequence as input and evaluated by Ranking-Oriented Evaluation Metrics.
 
 State of understanding and implementation of slides regarding this subject:
 
