@@ -55,8 +55,9 @@ def preprocess_data(data, n, m):
 
     return  U, I, P, I_u, S_u, I_te
 
+
 # without validation
-def FPMC(n, m, d, U, I, k, I_te, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alpha_v, alpha_p, alpha_q):
+def eALS(n, m, d, U, I, k, I_te, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alpha_v, alpha_p, alpha_q):
     # disable eager execution
     tf.compat.v1.disable_eager_execution()
 
@@ -176,8 +177,7 @@ def main():
     print('alpha_q = ' + str(alpha_q))
     print('k = ' + str(k))
 
-
-    FPMC(n, m, d, U, I, k, I_te, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alpha_v, alpha_p, alpha_q)
+    eALS(n, m, d, U, I, k, I_te, P, I_u, S_u, U_u, V_i, P_i, Q_i, T, gamma, alpha_u, alpha_v, alpha_p, alpha_q)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,18 @@ Evaluated by Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) as the 
 
 ![equation](https://latex.codecogs.com/gif.latex?RMSE&space;=&space;\sqrt{\sum_{(u,&space;i,&space;r_{ui})&space;\in&space;R^{te}&space;}&space;(&space;r_{ui}&space;-&space;\widehat{r}_{ui}&space;)&space;^&space;2&space;/&space;|R^{te}|})
 
+State of understanding and implementation of slides regarding this subject:
+
+|                          Slide                          | Understanding | Implemented |
+|:-------------------------------------------------------:|:-------------:|:-----------:|
+|                     Average Filling                     |       1       |      1      |
+|           Memory-Based Collaborative Filtering          |       1       |      1      |
+|                   Matrix Factorization                  |       1       |      1      |
+|                          SVD++                          |       1       |      1      |
+|                  Factorization Machine                  |       0       |      0      |
+| Matrix Factorization with Multiclass Preference Context |       1       |      1      |
+|                          k-CoFi                         |       1       |      0      |
+
 ### Recommendation with implicit feedback (One-class feedback)
 
 Evaluated by Ranking-Oriented Evaluation Metrics as the rationality of ranking, e.g. the precision denotes the proportion of recommended items in the test set. The full implementation of [Ranking Evaluation](https://github.com/Chrisgreatstar/recommendation/blob/main/utils/ranking_evaluation.py).
@@ -20,9 +32,6 @@ Evaluated by Ranking-Oriented Evaluation Metrics as the rationality of ranking, 
 
 ### Recommendation with sequential feedback
 Take user-interacted items sorted by time sequence as input and evaluated by Ranking-Oriented Evaluation Metrics. See code example: [Factorizing Personalized Markov Chains](https://github.com/Chrisgreatstar/recommendation/blob/main/Recommendation%20with%20sequential%20feedback/Factorizing%20Personalized%20Markov%20Chains/implement.py)
-
-
-
 
 
 
