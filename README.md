@@ -42,7 +42,7 @@ State of understanding and implementation of slides regarding this subject:
 | Factored Item Similarity Models with RMSE Loss |       1       |      1      |
 |  Factored Item Similarity Models with AUC Loss |       1       |      1      |
 |     Matrix Factorization with Logistic Loss    |       1       |      1      |
-|           Latent Dirichlet Allocation          |       1       |      0      |
+|           Latent Dirichlet Allocation          |       0.5     |      0      |
 |      Collaborative Denoising Auto-Encoders     |       0       |      0      |
 |         Variational Auto-Encoders (VAE)        |       0       |      0      |
 |  element-wise Alternative Least Squares (eALS) |       1       |      0      |
