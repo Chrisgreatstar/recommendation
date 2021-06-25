@@ -137,7 +137,7 @@ def main():
 
     # tradeoff parameters
     # set first T = 1 to debug
-    Ts = [1, 100, 500, 1000]
+    Ts = [100, 500, 1000]
     d = 20
     gamma = 0.01
     alpha_u = alpha_v = alpha_p = alpha_q = 0.001 # 0.1, 0.01, 0.001

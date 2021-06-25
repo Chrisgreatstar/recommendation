@@ -59,8 +59,7 @@ def NDCG_u(k, I_re_u, I_te_u):
 def NDCG(k, U_te, I_re, I_te):
     count = 0.0
     for u in U_te:
-        # 因为考虑了相对位置, 所以k应该小于等于测试集长度
-        _k = min(len(I_te[u]), k)
+        _k = min(len(I_re[u]), k)
         count += NDCG_u(_k, I_re[u], I_te[u])
     return count / len(U_te)
 
