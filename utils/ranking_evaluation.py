@@ -45,13 +45,13 @@ def DCG_u(k, I_re_u, I_te_u):
         if I_re_u[i] in I_te_u:
             # l = i + 1
             total_score += 1 / math.log(i+1 + 1)
-    return total_score / k
+    return total_score
 
 def Z_u(k, I_re_u, I_te_u):
     best_score = 0.0
     for i in range(k):
         best_score += 1 / math.log(i+1 + 1)
-    return best_score / k
+    return best_score
 
 def NDCG_u(k, I_re_u, I_te_u):
     return DCG_u(k, I_re_u, I_te_u) / Z_u(k, I_re_u, I_te_u)
