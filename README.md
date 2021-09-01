@@ -44,7 +44,7 @@ State of understanding and implementation of slides regarding this subject:
 |     Matrix Factorization with Logistic Loss    |       1       |      1      |
 |           Latent Dirichlet Allocation          |       0.5     |      0      |
 |      Collaborative Denoising Auto-Encoders     |       0       |      0      |
-|         Variational Auto-Encoders (VAE)        |       0       |      0      |
+|         Variational Auto-Encoders (VAE)        |       1       |      0      |
 |  element-wise Alternative Least Squares (eALS) |       1       |      0      |
 
 ### Recommendation with sequential feedback
@@ -57,6 +57,6 @@ State of understanding and implementation of slides regarding this subject:
 |     Factorizing Personalized Markov Chains    |       1       |      1      |
 |  Fusing Similarity Models with Markov Chains  |       0       |      0      |
 |        Translation-based Recommendation       |       0       |      0      |
-|    Self-Attentive Sequential Recommendation   |      0.5      |      0      |
+|    Self-Attentive Sequential Recommendation   |       1       |      0      |
 
 
