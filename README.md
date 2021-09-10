@@ -57,6 +57,6 @@ State of understanding and implementation of slides regarding this subject:
 |     Factorizing Personalized Markov Chains    |       1       |      1      |
 |  Fusing Similarity Models with Markov Chains  |       0       |      0      |
 |        Translation-based Recommendation       |       0       |      0      |
-|    Self-Attentive Sequential Recommendation   |       1       |      0      |
+|    Self-Attentive Sequential Recommendation   |       1       |      1      |
 
 
